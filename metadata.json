@@ -1,0 +1,8 @@
+{
+  "name": "MangaOS",
+  "description": "Sistema operacional narrativo neural para criadores de manga e novel. Estúdio digital com editor avançado, worldbuilding modular e comunidade integrada.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

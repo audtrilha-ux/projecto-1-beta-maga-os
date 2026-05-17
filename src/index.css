@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", serif;
+  
+  --color-zinc-950: #09090b;
+  --color-zinc-900: #18181b;
+  --color-zinc-800: #27272a;
+  --color-zinc-700: #3f3f46;
+  --color-zinc-600: #52525b;
+  --color-zinc-500: #71717a;
+  --color-zinc-400: #a1a1aa;
+  --color-zinc-300: #d4d4d8;
+  --color-zinc-200: #e4e4e7;
+  
+  --color-indigo-600: #4f46e5;
+  --color-indigo-500: #6366f1;
+  --color-indigo-400: #818cf8;
+  --color-indigo-300: #a5b4fc;
+}
+
+@layer base {
+  body {
+    @apply antialiased text-zinc-300 bg-zinc-950;
+  }
+}
+
+.prose p {
+  @apply mb-4 leading-relaxed;
+}
+
+/* Tiptap Editor Styling */
+.tiptap {
+  outline: none !important;
+}
+
+.editor-content-manga-os .tiptap p {
+  @apply mb-8 leading-[2] text-[18px] font-serif font-medium tracking-wide transition-all duration-300;
+  color: #a1a1aa; /* zinc-400 */
+}
+
+.editor-content-manga-os .tiptap p:hover {
+  @apply text-zinc-200;
+}
+
+.tiptap p {
+  @apply mb-10 leading-[1.8] text-[20px] font-serif transition-all duration-300;
+  color: #d4d4d8; /* zinc-300 */
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  content: "Comece sua narrativa aqui...";
+  @apply text-zinc-800 italic pointer-events-none float-left h-0;
+}
+
+.tiptap strong {
+  @apply text-indigo-400 font-bold;
+}
+
+.tiptap h1 {
+  @apply text-4xl font-serif font-black italic mb-12 text-white;
+}
+
+.tiptap blockquote {
+  @apply border-l-2 border-indigo-500/30 pl-8 italic my-12 text-zinc-500 bg-white/5 py-4 pr-4 rounded-r-2xl;
+}
+
+::selection {
+  @apply bg-indigo-600/30 text-white;
+}
+
+.editor-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.editor-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.editor-scroll::-webkit-scrollbar-thumb {
+  @apply bg-zinc-800 rounded-full hover:bg-zinc-700 transition-colors;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

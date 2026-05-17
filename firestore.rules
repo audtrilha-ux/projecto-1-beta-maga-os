@@ -1,0 +1,156 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- GLOABL HELPERS ---
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    
+    // Auth tokens NEVER contain custom claims (e.g., request.auth.token.role or admin). 
+    // We check for admin using a specific email from runtime as requested for bootstrapped admin.
+    function isAdmin() { 
+      return isSignedIn() && (
+        request.auth.token.email == '3eatcru@gmail.com' && request.auth.token.email_verified == true
+      );
+    }
+
+    function isProjectOwner(projectId) {
+      return isSignedIn() && get(/databases/$(database)/documents/projects/$(projectId)).data.ownerId == request.auth.uid;
+    }
+
+    // --- VALIDATION HELPERS ---
+    function isValidUser(data) {
+      return data.userId == request.auth.uid
+        && data.email is string
+        && data.createdAt == request.time;
+    }
+
+    function isValidProject(data) {
+      return data.ownerId == request.auth.uid
+        && data.title is string && data.title.size() <= 200
+        && (data.type == 'manga' || data.type == 'novel' || data.type == 'script');
+    }
+
+    function isValidCharacter(data) {
+      return data.name is string && data.name.size() <= 100
+        && data.role is string && data.role.size() <= 100;
+    }
+
+    function isValidWorldEntry(data) {
+      return data.title is string && data.title.size() <= 200
+        && data.category in ['location', 'faction', 'magic', 'lore'];
+    }
+
+    function isValidPost(data) {
+      return data.authorId == request.auth.uid
+        && data.content is string && data.content.size() <= 2000
+        && (data.mediaType in ['image', 'video', 'audio'] || !data.keys().contains('mediaType'));
+    }
+
+    function isValidComment(data) {
+      return data.userId == request.auth.uid
+        && data.text is string && data.text.size() <= 500;
+    }
+
+    function isValidFollow(data) {
+      return data.followerId == request.auth.uid;
+    }
+
+    // --- COLLECTIONS ---
+
+    // Users
+    match /users/{userId} {
+      allow get: if isSignedIn(); // Allow anyone to see public profile info
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) 
+        && incoming().userId == existing().userId 
+        && incoming().createdAt == existing().createdAt;
+
+      match /notifications/{notificationId} {
+        allow read, update: if isOwner(userId);
+        allow create: if isSignedIn() && incoming().recipientId == userId;
+      }
+    }
+
+    // Posts
+    match /posts/{postId} {
+      allow read: if true; // Public posts
+      allow create: if isSignedIn() && isValidPost(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && existing().authorId == request.auth.uid 
+        && incoming().authorId == existing().authorId
+        && incoming().createdAt == existing().createdAt;
+      allow delete: if isSignedIn() && existing().authorId == request.auth.uid;
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn() && isValidComment(incoming()) && incoming().createdAt == request.time;
+        allow update, delete: if isSignedIn() && existing().userId == request.auth.uid;
+      }
+
+      match /likes/{userId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
+      }
+    }
+
+    // Followers
+    match /followers/{followId} {
+      allow read: if true;
+      allow create: if isSignedIn() && isValidFollow(incoming()) && incoming().createdAt == request.time;
+      allow delete: if isSignedIn() && existing().followerId == request.auth.uid;
+    }
+
+    // Projects
+    match /projects/{projectId} {
+      allow get: if isSignedIn() && existing().ownerId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      
+      allow create: if isSignedIn() && isValidProject(incoming()) && incoming().createdAt == request.time;
+      allow update: if (isSignedIn() && isValidProject(incoming()) && (
+        existing().ownerId == request.auth.uid 
+        && incoming().ownerId == existing().ownerId
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'type', 'content', 'panels', 'updatedAt'])
+          && (incoming().updatedAt == request.time || !incoming().keys().contains('updatedAt'))
+        )
+      ));
+      allow delete: if isSignedIn() && existing().ownerId == request.auth.uid;
+
+      // Sub-collections
+      match /characters/{characterId} {
+        allow read: if isProjectOwner(projectId);
+        allow create: if isProjectOwner(projectId) && isValidCharacter(incoming()) && incoming().createdAt == request.time;
+        allow update: if (isProjectOwner(projectId) && isValidCharacter(incoming()) && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'role', 'description', 'visualTraits', 'personality', 'motivation', 'updatedAt'])
+          && (incoming().updatedAt == request.time || !incoming().keys().contains('updatedAt'))
+        ));
+        allow delete: if isProjectOwner(projectId);
+      }
+
+      match /worldbuilding/{entryId} {
+        allow read: if isProjectOwner(projectId);
+        allow create: if isProjectOwner(projectId) && isValidWorldEntry(incoming()) && incoming().createdAt == request.time;
+        allow update: if (isProjectOwner(projectId) && isValidWorldEntry(incoming()) && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'category', 'content', 'tags', 'updatedAt'])
+          && (incoming().updatedAt == request.time || !incoming().keys().contains('updatedAt'))
+        ));
+        allow delete: if isProjectOwner(projectId);
+      }
+
+      match /chapters/{chapterId} {
+        allow read, write: if isProjectOwner(projectId);
+        
+        match /panels/{panelId} {
+          allow read, write: if isProjectOwner(projectId);
+        }
+      }
+    }
+  }
+}

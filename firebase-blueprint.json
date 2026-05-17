@@ -1,0 +1,211 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account information",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "email"]
+    },
+    "Project": {
+      "title": "Project",
+      "description": "A novel or manga project",
+      "type": "object",
+      "properties": {
+        "projectId": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "type": { "type": "string", "enum": ["novel", "manga", "script"] },
+        "coverImage": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["projectId", "ownerId", "title", "type"]
+    },
+    "Character": {
+      "title": "Character",
+      "description": "A character in a project",
+      "type": "object",
+      "properties": {
+        "characterId": { "type": "string" },
+        "projectId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "role": { "type": "string" },
+        "visualTraits": { "type": "string" },
+        "headshotUrl": { "type": "string" }
+      },
+      "required": ["characterId", "projectId", "name"]
+    },
+    "Chapter": {
+      "title": "Chapter",
+      "description": "A chapter within a project",
+      "type": "object",
+      "properties": {
+        "chapterId": { "type": "string" },
+        "projectId": { "type": "string" },
+        "title": { "type": "string" },
+        "contentUrl": { "type": "string" },
+        "order": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["chapterId", "projectId", "title", "order"]
+    },
+    "Panel": {
+      "title": "Manga Panel",
+      "description": "A generated manga panel with layers",
+      "type": "object",
+      "properties": {
+        "panelId": { "type": "string" },
+        "chapterId": { "type": "string" },
+        "projectId": { "type": "string" },
+        "prompt": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "balloons": { "type": "array", "items": { "type": "object" } },
+        "order": { "type": "number" }
+      },
+      "required": ["panelId", "chapterId", "projectId", "imageUrl"]
+    },
+    "WorldBuilding": {
+      "title": "Worldbuilding Entry",
+      "description": "Information about locations, factions, or lore",
+      "type": "object",
+      "properties": {
+        "entryId": { "type": "string" },
+        "projectId": { "type": "string" },
+        "category": { "type": "string", "enum": ["location", "faction", "magic", "lore"] },
+        "title": { "type": "string" },
+        "content": { "type": "string" }
+      },
+      "required": ["entryId", "projectId", "category", "title"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "A social post sharing a project or update",
+      "type": "object",
+      "properties": {
+        "postId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhotoURL": { "type": "string" },
+        "projectId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "mediaUrl": { "type": "string" },
+        "mediaType": { "type": "string", "enum": ["image", "video", "audio"] },
+        "likeCount": { "type": "number" },
+        "commentCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["postId", "authorId", "content", "createdAt"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "A comment on a post",
+      "type": "object",
+      "properties": {
+        "commentId": { "type": "string" },
+        "postId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userPhotoURL": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["commentId", "postId", "userId", "text", "createdAt"]
+    },
+    "Like": {
+      "title": "Like",
+      "description": "A like on a post",
+      "type": "object",
+      "properties": {
+        "likeId": { "type": "string" },
+        "postId": { "type": "string" },
+        "userId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["likeId", "postId", "userId"]
+    },
+    "Follow": {
+      "title": "Follow",
+      "description": "A follow relationship between users",
+      "type": "object",
+      "properties": {
+        "followId": { "type": "string" },
+        "followerId": { "type": "string" },
+        "followingId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["followId", "followerId", "followingId"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "A user notification",
+      "type": "object",
+      "properties": {
+        "notificationId": { "type": "string" },
+        "recipientId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "type": { "type": "string", "enum": ["like", "comment", "follow", "system"] },
+        "postId": { "type": "string" },
+        "read": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["notificationId", "recipientId", "type", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Primary user profiles"
+    },
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Public social posts"
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments on posts"
+    },
+    "/posts/{postId}/likes/{userId}": {
+      "schema": "Like",
+      "description": "Likes on posts"
+    },
+    "/followers/{followId}": {
+      "schema": "Follow",
+      "description": "Following relationships"
+    },
+    "/users/{userId}/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User specific notifications"
+    },
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "Project metadata"
+    },
+    "/projects/{projectId}/characters/{characterId}": {
+      "schema": "Character",
+      "description": "Characters belonging to a project"
+    },
+    "/projects/{projectId}/worldbuilding/{entryId}": {
+      "schema": "WorldBuilding",
+      "description": "Worldbuilding lore entries"
+    },
+    "/projects/{projectId}/chapters/{chapterId}": {
+      "schema": "Chapter",
+      "description": "Chapters belonging to a project"
+    },
+    "/projects/{projectId}/chapters/{chapterId}/panels/{panelId}": {
+      "schema": "Panel",
+      "description": "Manga panels belonging to a chapter"
+    }
+  }
+}
